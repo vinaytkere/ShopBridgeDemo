@@ -1,0 +1,114 @@
+﻿@model ShopBridgeDemo.Models.InventoryModel
+
+
+<div class="container" style="padding-top:25px">
+    <div class="col-md-6">
+        <form>
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" class="form-control" id="name" placeholder="Name" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+                <label for="desc">Description:</label>
+                <input type="text" class="form-control" id="desc" placeholder="Description" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="text" class="form-control" id="price" placeholder="Price" autocomplete="off" required>
+            </div>
+            <button type="submit" id="btnSub" class="btn btn-success">Submit</button>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <table id="example" class="table table-bordered" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+@section Scripts{
+    <script>
+        let id;
+        function edit(btn) {
+
+            id = btn.id.split('_')[1];
+
+            var oTable = document.getElementById('example');
+
+            var rowLength = oTable.rows.length;
+
+            var oCells = oTable.rows.item(id).cells;
+
+            $('#name').val(oCells.item(0).innerHTML)
+            $('#desc').val(oCells.item(1).innerHTML)
+            $('#price').val(oCells.item(2).innerHTML)
+        }
+
+        function delete_record(btn) {
+            //alert(btn.id.split('_')[1])
+            let id = btn.id.split('_')[1];
+            $.ajax({
+                type: 'delete',
+                url: '/api/Inventories/Delete?id=' + id + '',
+                dataType: 'json',
+                success: function (result) {
+                    alert('Deleted Successfully')
+                    location.reload();
+                }
+            })
+        }
+
+        $(document).ready(function () {
+
+            $.ajax({
+                type: 'get',
+                url: '/api/Inventories/Get',
+                dataType: 'json',
+                success: function (result) {
+
+
+                    var trHTML = '';
+                    $.each(JSON.parse(JSON.stringify(result)), function (i, item) {
+                        trHTML += '<tr><td>' + item.Name + '</td><td>' + item.Description + '</td><td>' + item.Price + '</td><td><Button id=' + "edit_" + item.Id + ' class="btn btn-info" onclick="edit(this)">Edit</Button></td><td><Button id=' + "delete_" + item.Id + ' class="btn btn-danger" onclick="delete_record(this)">Delete</Button></td></tr>';
+                    });
+                    $('#example').append(trHTML);
+                }
+            })
+
+            $('#btnSub').click(function () {
+                debugger;
+                if ($('#name').val() != '' && $('#desc').val() != '' && $('#price').val() != '') {
+                    let inventoryModel = {
+                        Id: id,
+                        Name: $('#name').val(),
+                        Description: $('#desc').val(),
+                        Price: $('#price').val()
+                    }
+                    console.log(inventoryModel)
+                    $.ajax({
+                        type: 'post',
+                        data: JSON.parse(JSON.stringify(inventoryModel)),
+                        url: '/api/Inventories/Save',
+                        dataType: 'json',
+                        success: function () {
+                            alert('success')
+                            location.reload();
+                        }
+                    })
+                }
+
+            })
+        });
+    </script>
+}
+
+
